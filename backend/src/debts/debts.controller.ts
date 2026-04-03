@@ -30,16 +30,13 @@ export class DebtsController {
   }
 
   @Patch(':id')
-  update(
-    @Param('id') id: string,
-    @Body() updateDebtDto: UpdateDebtDto,
-  ) {
+  update(@Param('id') id: string, @Body() updateDebtDto: UpdateDebtDto) {
     return this.debtsService.update(id, updateDebtDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    this.debtsService.remove(id);
+  async remove(@Param('id') id: string) {
+    await this.debtsService.remove(id);
     return { deleted: true };
   }
 }
