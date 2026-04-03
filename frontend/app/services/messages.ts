@@ -1,4 +1,4 @@
-import { ENDPOINT } from '~/constants/endpoints'
+import { ENDPOINT } from '~/constants/endpoints';
 import type {
   CreateMessageRequestDTO,
   CreateMessageResponseDTO,
@@ -6,41 +6,41 @@ import type {
   GetMessageByIdResponseDTO,
   MessagesListResponseDTO,
   UpdateMessageRequestDTO,
-  UpdateMessageResponseDTO
-} from '~/dtos'
+  UpdateMessageResponseDTO,
+} from '~/dtos';
 
 const useMessagesService = () => {
-  const { $api } = useNuxtApp()
+  const { $api } = useNuxtApp();
 
   const list = () => {
-    return $api<MessagesListResponseDTO>(ENDPOINT.MESSAGES.LIST)
-  }
+    return $api<MessagesListResponseDTO>(ENDPOINT.MESSAGES.LIST);
+  };
 
   const getById = (id: string) => {
-    return $api<GetMessageByIdResponseDTO>(ENDPOINT.MESSAGES.GET_BY_ID(id))
-  }
+    return $api<GetMessageByIdResponseDTO>(ENDPOINT.MESSAGES.GET_BY_ID(id));
+  };
 
   const create = (payload: CreateMessageRequestDTO) => {
     return $api<CreateMessageResponseDTO>(ENDPOINT.MESSAGES.CREATE, {
       method: 'POST',
-      body: payload
-    })
-  }
+      body: payload,
+    });
+  };
 
   const update = (id: string, payload: UpdateMessageRequestDTO) => {
     return $api<UpdateMessageResponseDTO>(ENDPOINT.MESSAGES.UPDATE(id), {
       method: 'PATCH',
-      body: payload
-    })
-  }
+      body: payload,
+    });
+  };
 
   const remove = (id: string) => {
     return $api<DeleteMessageResponseDTO>(ENDPOINT.MESSAGES.DELETE(id), {
-      method: 'DELETE'
-    })
-  }
+      method: 'DELETE',
+    });
+  };
 
-  return { list, getById, create, update, remove }
-}
+  return { list, getById, create, update, remove };
+};
 
-export { useMessagesService }
+export { useMessagesService };

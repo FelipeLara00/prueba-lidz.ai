@@ -2,10 +2,10 @@
 import { formatNumber } from '~/utils';
 
 defineProps<{
-  totalClients: number
-  totalSalary: number
-  totalSavings: number
-}>()
+  totalClients: number;
+  totalSalary: number;
+  totalSavings: number;
+}>();
 </script>
 
 <template>
@@ -14,7 +14,9 @@ defineProps<{
       <template #header>
         <p class="text-sm text-muted">Total clientes</p>
       </template>
-      <p class="text-2xl font-semibold">{{ totalClients }}</p>
+      <p class="text-2xl font-semibold">
+        {{ totalClients }}
+      </p>
     </UCard>
 
     <UCard class="bg-white dark:bg-neutral-900 rounded-2xl !border-0 !ring-0 !shadow-none">

@@ -1,11 +1,11 @@
-import { formatRut as formatRutLib, RutFormat } from '@fdograph/rut-utilities'
+import { formatRut as formatRutLib, RutFormat } from '@fdograph/rut-utilities';
 
 function formatRut(value?: string | null): string {
   if (!value) {
-    return ''
+    return '';
   }
 
-  return formatRutLib(value, RutFormat.DOTS_DASH)
+  return formatRutLib(value, RutFormat.DOTS_DASH);
 }
 
-export { formatRut }
+export { formatRut };

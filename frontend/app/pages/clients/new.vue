@@ -2,14 +2,14 @@
 import type {
   CreateClientDebtRequestDTO,
   CreateClientMessageRequestDTO,
-  CreateClientRequestDTO
-} from '~/dtos'
-import { useClientsService } from '~/services/clients'
+  CreateClientRequestDTO,
+} from '~/dtos';
+import { useClientsService } from '~/services/clients';
 
-const service = useClientsService()
+const service = useClientsService();
 
-const saving = ref(false)
-const errorMessage = ref('')
+const saving = ref(false);
+const errorMessage = ref('');
 
 const createForm = reactive<CreateClientRequestDTO>({
   name: '',
@@ -17,23 +17,23 @@ const createForm = reactive<CreateClientRequestDTO>({
   salary: 0,
   savings: 0,
   debts: [],
-  messages: []
-})
+  messages: [],
+});
 
 function toIsoOrEmpty(value: string): string {
-  const date = new Date(value)
+  const date = new Date(value);
 
   if (Number.isNaN(date.getTime())) {
-    return ''
+    return '';
   }
 
-  return date.toISOString()
+  return date.toISOString();
 }
 
 async function handleCreate() {
   try {
-    saving.value = true
-    errorMessage.value = ''
+    saving.value = true;
+    errorMessage.value = '';
 
     const created = await service.create({
       name: createForm.name.trim(),
@@ -41,26 +41,30 @@ async function handleCreate() {
       salary: Number(createForm.salary),
       savings: Number(createForm.savings),
       debts: (createForm.debts ?? [])
-        .map((item): CreateClientDebtRequestDTO => ({
-          institution: item.institution.trim(),
-          amount: Number(item.amount),
-          dueDate: item.dueDate ? toIsoOrEmpty(item.dueDate) : ''
-        }))
+        .map(
+          (item): CreateClientDebtRequestDTO => ({
+            institution: item.institution.trim(),
+            amount: Number(item.amount),
+            dueDate: item.dueDate ? toIsoOrEmpty(item.dueDate) : '',
+          })
+        )
         .filter((item) => item.institution && item.amount > 0 && item.dueDate),
       messages: (createForm.messages ?? [])
-        .map((item): CreateClientMessageRequestDTO => ({
-          text: item.text.trim(),
-          role: item.role,
-          sentAt: item.sentAt ? toIsoOrEmpty(item.sentAt) : ''
-        }))
-        .filter((item) => item.text && item.sentAt)
-    })
+        .map(
+          (item): CreateClientMessageRequestDTO => ({
+            text: item.text.trim(),
+            role: item.role,
+            sentAt: item.sentAt ? toIsoOrEmpty(item.sentAt) : '',
+          })
+        )
+        .filter((item) => item.text && item.sentAt),
+    });
 
-    await navigateTo(`/clients/${encodeURIComponent(created.id)}`)
+    await navigateTo(`/clients/${encodeURIComponent(created.id)}`);
   } catch {
-    errorMessage.value = 'No se pudo iniciar la conversación.'
+    errorMessage.value = 'No se pudo iniciar la conversación.';
   } finally {
-    saving.value = false
+    saving.value = false;
   }
 }
 </script>
@@ -73,7 +77,12 @@ async function handleCreate() {
         <p class="text-sm text-muted">Crea el cliente y envía su primer mensaje.</p>
       </div>
 
-      <UButton color="neutral" variant="ghost" icon="i-lucide-arrow-left" @click="navigateTo('/clients')">
+      <UButton
+        color="neutral"
+        variant="ghost"
+        icon="i-lucide-arrow-left"
+        @click="navigateTo('/clients')"
+      >
         Volver
       </UButton>
     </div>
