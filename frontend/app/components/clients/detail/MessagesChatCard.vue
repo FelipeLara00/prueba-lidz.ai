@@ -3,26 +3,26 @@ import type { ClientMessageDTO } from '~/dtos';
 import { formatDateTime } from '~/utils';
 
 const props = defineProps<{
-  messages: ClientMessageDTO[]
-  sending?: boolean
-}>()
+  messages: ClientMessageDTO[];
+  sending?: boolean;
+}>();
 
 const emit = defineEmits<{
-  submitMessage: [payload: { text: string }]
-}>()
+  submitMessage: [payload: { text: string }];
+}>();
 
-const draftText = ref('')
-const messagesViewportRef = ref<HTMLElement | null>(null)
+const draftText = ref('');
+const messagesViewportRef = ref<HTMLElement | null>(null);
 
 function onSubmitMessage() {
-  const text = draftText.value.trim()
+  const text = draftText.value.trim();
 
   if (!text) {
-    return
+    return;
   }
 
-  emit('submitMessage', { text })
-  draftText.value = ''
+  emit('submitMessage', { text });
+  draftText.value = '';
 }
 
 const chatMessages = computed(() => {
@@ -34,58 +34,70 @@ const chatMessages = computed(() => {
       parts: [
         {
           type: 'text',
-          text: message.text
-        }
+          text: message.text,
+        },
       ],
       metadata: {
         sentAt: message.sentAt,
-        sourceRole: message.role
-      }
-    }))
-})
+        sourceRole: message.role,
+      },
+    }));
+});
 
 function scrollMessagesToBottom(behavior: ScrollBehavior = 'auto') {
-  const el = messagesViewportRef.value
+  const el = messagesViewportRef.value;
 
   if (!el) {
-    return
+    return;
   }
 
   el.scrollTo({
     top: el.scrollHeight,
-    behavior
-  })
+    behavior,
+  });
 }
 
 watch(
   () => chatMessages.value.length,
   async (_newLength, oldLength) => {
-    await nextTick()
-    scrollMessagesToBottom(oldLength === undefined ? 'auto' : 'smooth')
+    await nextTick();
+    scrollMessagesToBottom(oldLength === undefined ? 'auto' : 'smooth');
   },
   { immediate: true }
-)
+);
 </script>
 
 <template>
   <UCard
     class="min-h-[65dvh] lg:h-full bg-white dark:bg-neutral-900 rounded-2xl border-0 ring-0 shadow-none p-2"
-    :ui="{ root: 'h-full flex flex-col', body: 'flex-1 min-h-0 flex p-2 sm:p-3' }"
+    :ui="{
+      root: 'h-full flex flex-col',
+      body: 'flex-1 min-h-0 flex p-2 sm:p-3',
+    }"
   >
     <template #header>
       <div class="flex items-center justify-between gap-3">
         <div class="flex items-center gap-2">
-          <UIcon name="i-lucide-messages-square" class="text-neutral-700 dark:text-neutral-200" />
+          <UIcon
+            name="i-lucide-messages-square"
+            class="text-neutral-700 dark:text-neutral-200"
+          />
           <h3 class="font-semibold text-neutral-800 dark:text-neutral-100">Conversacion</h3>
         </div>
-        <UBadge color="neutral" variant="subtle">
+        <UBadge
+          color="neutral"
+          variant="subtle"
+        >
           {{ chatMessages.length }} mensajes
         </UBadge>
       </div>
     </template>
 
     <div class="rounded-2xl bg-white dark:bg-neutral-900 p-1 h-full w-full min-h-0 flex flex-col">
-      <div ref="messagesViewportRef" class="flex-1 min-h-0 overflow-y-auto pr-1 pb-3">
+      <div
+        ref="messagesViewportRef"
+        class="flex-1 min-h-0 overflow-y-auto pr-1 pb-3"
+      >
         <UChatMessages
           :messages="chatMessages"
           :should-scroll-to-bottom="true"
@@ -94,9 +106,12 @@ watch(
         >
           <template #content="{ message }">
             <div class="space-y-1">
-              <p class="whitespace-pre-wrap">{{ message.parts?.[0]?.text }}</p>
+              <p class="whitespace-pre-wrap">
+                {{ message.parts?.[0]?.text }}
+              </p>
               <p class="text-xs text-muted">
-                {{ message.metadata?.sourceRole === 'client' ? 'Cliente' : 'Agente' }} •
+                {{ message.metadata?.sourceRole === 'client' ? 'Cliente' : 'Agente' }}
+                •
                 {{ formatDateTime(String(message.metadata?.sentAt || '')) }}
               </p>
             </div>

@@ -3,15 +3,15 @@ import type { TableColumn } from '@nuxt/ui';
 import type { ClientDTO } from '~/dtos';
 
 defineProps<{
-  clients: ClientDTO[]
-  columns: TableColumn<ClientDTO>[]
-  loading: boolean
-}>()
+  clients: ClientDTO[];
+  columns: TableColumn<ClientDTO>[];
+  loading: boolean;
+}>();
 
 const emit = defineEmits<{
-  reload: []
-  rowSelect: [event: Event, row: { original: ClientDTO }]
-}>()
+  reload: [];
+  rowSelect: [event: Event, row: { original: ClientDTO }];
+}>();
 </script>
 
 <template>
@@ -19,7 +19,12 @@ const emit = defineEmits<{
     <template #header>
       <div class="flex items-center justify-between gap-3">
         <h3 class="font-semibold">Tabla de clientes</h3>
-        <UButton color="neutral" variant="ghost" :loading="loading" @click="emit('reload')">
+        <UButton
+          color="neutral"
+          variant="ghost"
+          :loading="loading"
+          @click="emit('reload')"
+        >
           Recargar
         </UButton>
       </div>

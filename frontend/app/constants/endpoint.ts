@@ -15,5 +15,5 @@ export const ENDPOINTS = {
   messagesCreate: '/messages',
   messagesGetById: (id: string) => `/messages/${encodeURIComponent(id)}`,
   messagesUpdate: (id: string) => `/messages/${encodeURIComponent(id)}`,
-  messagesDelete: (id: string) => `/messages/${encodeURIComponent(id)}`
-} as const
+  messagesDelete: (id: string) => `/messages/${encodeURIComponent(id)}`,
+} as const;
