@@ -10,6 +10,7 @@ RUN npm ci
 COPY backend/ ./
 RUN npx prisma generate
 RUN npm run build
+RUN npm run db:seed
 RUN npm prune --omit=dev
 
 EXPOSE 3001
