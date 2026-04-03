@@ -26,9 +26,9 @@ useSeoMeta({
 </script>
 
 <template>
-  <UApp>
+  <UApp class="min-h-screen bg-sky-50 dark:bg-neutral-950">
     <LayoutHeader />
-    <UMain>
+    <UMain class="bg-sky-50 dark:bg-neutral-950">
       <NuxtPage />
     </UMain>
   </UApp>
