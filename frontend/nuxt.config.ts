@@ -11,6 +11,16 @@ export default defineNuxtConfig({
 
   css: ['~/assets/css/main.css'],
 
+  runtimeConfig: {
+    public: {
+      apiBaseUrl: 'http://localhost:3000'
+    }
+  },
+
+  imports: {
+    dirs: ['services/**']
+  },
+
   routeRules: {
     '/': { prerender: true }
   },
