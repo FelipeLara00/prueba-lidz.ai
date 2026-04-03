@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import type { ClientDTO } from '~/dtos'
+import type { TableColumn } from '@nuxt/ui';
+import type { ClientDTO } from '~/dtos';
 
 defineProps<{
   clients: ClientDTO[]
-  columns: { accessorKey: string, header: string }[]
+  columns: TableColumn<ClientDTO>[]
   loading: boolean
 }>()
 
@@ -14,7 +15,7 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <UCard>
+  <UCard class="bg-white dark:bg-neutral-900 rounded-2xl !border-0 !ring-0 !shadow-none">
     <template #header>
       <div class="flex items-center justify-between gap-3">
         <h3 class="font-semibold">Tabla de clientes</h3>
@@ -25,6 +26,7 @@ const emit = defineEmits<{
     </template>
 
     <UTable
+      sticky
       :data="clients"
       :columns="columns"
       :loading="loading"
