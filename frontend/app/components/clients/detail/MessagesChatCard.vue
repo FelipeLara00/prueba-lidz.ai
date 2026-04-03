@@ -1,9 +1,34 @@
 <script setup lang="ts">
-import type { ClientMessageDTO } from '~/dtos'
+import type { ClientMessageDTO } from '~/dtos';
+import { formatDateTime } from '~/utils';
 
 const props = defineProps<{
   messages: ClientMessageDTO[]
+  sending?: boolean
 }>()
+
+const emit = defineEmits<{
+  submitMessage: [payload: { text: string; role: 'client' | 'agent' }]
+}>()
+
+const draftText = ref('')
+const draftRole = ref<'client' | 'agent'>('client')
+const messagesViewportRef = ref<HTMLElement | null>(null)
+const roleItems = [
+  { label: 'Cliente', value: 'client' },
+  { label: 'Agente', value: 'agent' }
+]
+
+function onSubmitMessage() {
+  const text = draftText.value.trim()
+
+  if (!text) {
+    return
+  }
+
+  emit('submitMessage', { text, role: draftRole.value })
+  draftText.value = ''
+}
 
 const chatMessages = computed(() => {
   return [...props.messages]
@@ -23,28 +48,99 @@ const chatMessages = computed(() => {
       }
     }))
 })
+
+function scrollMessagesToBottom(behavior: ScrollBehavior = 'auto') {
+  const el = messagesViewportRef.value
+
+  if (!el) {
+    return
+  }
+
+  el.scrollTo({
+    top: el.scrollHeight,
+    behavior
+  })
+}
+
+watch(
+  () => chatMessages.value.length,
+  async (_newLength, oldLength) => {
+    await nextTick()
+    scrollMessagesToBottom(oldLength === undefined ? 'auto' : 'smooth')
+  },
+  { immediate: true }
+)
 </script>
 
 <template>
-  <UCard>
+  <UCard
+    class="h-full bg-white dark:bg-neutral-900 rounded-2xl border-0 ring-0 shadow-none p-2"
+    :ui="{ root: 'h-full flex flex-col', body: 'flex-1 min-h-0 flex' }"
+  >
     <template #header>
-      <h3 class="font-semibold">Mensajes</h3>
-    </template>
-    <UChatMessages
-      :messages="chatMessages"
-      :should-scroll-to-bottom="false"
-      :user="{ side: 'right', variant: 'soft' }"
-      :assistant="{ side: 'left', variant: 'outline' }"
-    >
-      <template #content="{ message }">
-        <div class="space-y-1">
-          <p class="whitespace-pre-wrap">{{ message.parts?.[0]?.text }}</p>
-          <p class="text-xs text-muted">
-            {{ message.metadata?.sourceRole === 'client' ? 'Cliente' : 'Agente' }} •
-            {{ new Date(message.metadata?.sentAt).toLocaleString() }}
-          </p>
+      <div class="flex items-center justify-between gap-3">
+        <div class="flex items-center gap-2">
+          <UIcon name="i-lucide-messages-square" class="text-neutral-700 dark:text-neutral-200" />
+          <h3 class="font-semibold text-neutral-800 dark:text-neutral-100">Conversacion</h3>
         </div>
-      </template>
-    </UChatMessages>
+        <UBadge color="neutral" variant="subtle">
+          {{ chatMessages.length }} mensajes
+        </UBadge>
+      </div>
+    </template>
+
+    <div class="rounded-2xl bg-white dark:bg-neutral-900 p-1 h-full w-full min-h-0 flex flex-col">
+      <div ref="messagesViewportRef" class="flex-1 min-h-0 overflow-y-auto pr-1 pb-3">
+        <UChatMessages
+          :messages="chatMessages"
+          :should-scroll-to-bottom="true"
+          :user="{ side: 'right', variant: 'solid' }"
+          :assistant="{ side: 'left', variant: 'soft' }"
+        >
+          <template #content="{ message }">
+            <div class="space-y-1">
+              <p class="whitespace-pre-wrap">{{ message.parts?.[0]?.text }}</p>
+              <p class="text-xs text-muted">
+                {{ message.metadata?.sourceRole === 'client' ? 'Cliente' : 'Agente' }} •
+                {{ formatDateTime(String(message.metadata?.sentAt || '')) }}
+              </p>
+            </div>
+          </template>
+        </UChatMessages>
+      </div>
+
+      <div class="mt-2 pt-3 bg-white dark:bg-neutral-900 backdrop-blur-sm rounded-xl">
+        <UChatPrompt
+          v-model="draftText"
+          :rows="1"
+          :maxrows="4"
+          :disabled="sending"
+          placeholder="Escribe un mensaje..."
+          @submit="onSubmitMessage"
+        >
+          <template #footer>
+            <div class="w-full flex items-center gap-2">
+              <div class="w-40">
+                <USelect
+                  v-model="draftRole"
+                  :items="roleItems"
+                  value-key="value"
+                  label-key="label"
+                />
+              </div>
+
+              <div class="ml-auto">
+                <UChatPromptSubmit
+                  :status="sending ? 'streaming' : 'ready'"
+                  :disabled="!draftText.trim()"
+                  color="primary"
+                  variant="solid"
+                />
+              </div>
+            </div>
+          </template>
+        </UChatPrompt>
+      </div>
+    </div>
   </UCard>
 </template>
