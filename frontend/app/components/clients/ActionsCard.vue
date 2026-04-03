@@ -1,13 +1,13 @@
 <script setup lang="ts">
 defineProps<{
-  saving: boolean
-}>()
+  saving: boolean;
+}>();
 
 const emit = defineEmits<{
-  details: []
-  update: []
-  remove: []
-}>()
+  details: [];
+  update: [];
+  remove: [];
+}>();
 </script>
 
 <template>
@@ -17,13 +17,26 @@ const emit = defineEmits<{
     </template>
 
     <div class="flex flex-wrap gap-2">
-      <UButton color="neutral" variant="soft" @click="emit('details')">
+      <UButton
+        color="neutral"
+        variant="soft"
+        @click="emit('details')"
+      >
         Ver detalle
       </UButton>
-      <UButton color="primary" :loading="saving" @click="emit('update')">
+      <UButton
+        color="primary"
+        :loading="saving"
+        @click="emit('update')"
+      >
         Actualizar seleccionado
       </UButton>
-      <UButton color="error" variant="soft" :loading="saving" @click="emit('remove')">
+      <UButton
+        color="error"
+        variant="soft"
+        :loading="saving"
+        @click="emit('remove')"
+      >
         Eliminar seleccionado
       </UButton>
     </div>

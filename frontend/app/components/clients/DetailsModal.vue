@@ -1,30 +1,34 @@
 <script setup lang="ts">
-import type { ClientDTO, DebtDTO, MessageDTO } from '~/dtos'
+import type { ClientDTO, DebtDTO, MessageDTO } from '~/dtos';
 
-const open = defineModel<boolean>('open', { required: true })
+const open = defineModel<boolean>('open', { required: true });
 
 defineProps<{
-  loading: boolean
-  client: ClientDTO | null
-  debts: DebtDTO[]
-  messages: MessageDTO[]
-}>()
+  loading: boolean;
+  client: ClientDTO | null;
+  debts: DebtDTO[];
+  messages: MessageDTO[];
+}>();
 
 const debtColumns = [
   { accessorKey: 'institution', header: 'Institucion' },
   { accessorKey: 'amount', header: 'Monto' },
-  { accessorKey: 'dueDate', header: 'Vencimiento' }
-]
+  { accessorKey: 'dueDate', header: 'Vencimiento' },
+];
 
 const messageColumns = [
   { accessorKey: 'role', header: 'Rol' },
   { accessorKey: 'text', header: 'Mensaje' },
-  { accessorKey: 'sentAt', header: 'Enviado' }
-]
+  { accessorKey: 'sentAt', header: 'Enviado' },
+];
 </script>
 
 <template>
-  <UModal v-model:open="open" title="Detalle de cliente" :ui="{ content: 'max-w-4xl' }">
+  <UModal
+    v-model:open="open"
+    title="Detalle de cliente"
+    :ui="{ content: 'max-w-4xl' }"
+  >
     <template #body>
       <div class="space-y-4">
         <UAlert
@@ -34,19 +38,26 @@ const messageColumns = [
           title="Selecciona un cliente para ver su detalle."
         />
 
-        <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div
+          v-else
+          class="grid grid-cols-1 md:grid-cols-2 gap-3"
+        >
           <UCard>
             <template #header>
               <p class="text-sm text-muted">Nombre</p>
             </template>
-            <p class="font-semibold">{{ client.name }}</p>
+            <p class="font-semibold">
+              {{ client.name }}
+            </p>
           </UCard>
 
           <UCard>
             <template #header>
               <p class="text-sm text-muted">RUT</p>
             </template>
-            <p class="font-semibold">{{ client.rut }}</p>
+            <p class="font-semibold">
+              {{ client.rut }}
+            </p>
           </UCard>
         </div>
 

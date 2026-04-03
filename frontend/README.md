@@ -1,64 +1,83 @@
-# Nuxt Starter Template
+# Frontend - Prueba Tencina Lidz.ai
 
-[![Nuxt UI](https://img.shields.io/badge/Made%20with-Nuxt%20UI-00DC82?logo=nuxt&labelColor=020420)](https://ui.nuxt.com)
+Aplicación Nuxt 4 + Nuxt UI para flujo de clientes y conversación con agente.
 
-Use this template to get started with [Nuxt UI](https://ui.nuxt.com) quickly.
+## Stack
 
-- [Live demo](https://starter-template.nuxt.dev/)
-- [Documentation](https://ui.nuxt.com/docs/getting-started/installation/nuxt)
+- Nuxt 4
+- Nuxt UI 4
+- Tailwind CSS 4
+- TypeScript
 
-<a href="https://starter-template.nuxt.dev/" target="_blank">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://ui.nuxt.com/assets/templates/nuxt/starter-dark.png">
-    <source media="(prefers-color-scheme: light)" srcset="https://ui.nuxt.com/assets/templates/nuxt/starter-light.png">
-    <img alt="Nuxt Starter Template" src="https://ui.nuxt.com/assets/templates/nuxt/starter-light.png" width="830" height="466">
-  </picture>
-</a>
+## Requisitos
 
-> The starter template for Vue is on https://github.com/nuxt-ui-templates/starter-vue.
+- Node.js 20+
+- npm 10+ (o pnpm 10+)
 
-## Quick Start
-
-```bash [Terminal]
-npm create nuxt@latest -- -t ui
-```
-
-## Deploy your own
-
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-name=starter&repository-url=https%3A%2F%2Fgithub.com%2Fnuxt-ui-templates%2Fstarter&demo-image=https%3A%2F%2Fui.nuxt.com%2Fassets%2Ftemplates%2Fnuxt%2Fstarter-dark.png&demo-url=https%3A%2F%2Fstarter-template.nuxt.dev%2F&demo-title=Nuxt%20Starter%20Template&demo-description=A%20minimal%20template%20to%20get%20started%20with%20Nuxt%20UI.)
-
-## Setup
-
-Make sure to install the dependencies:
+## Instalación
 
 ```bash
-pnpm install
+npm install
 ```
 
-## Development Server
+## Variables de entorno
 
-Start the development server on `http://localhost:3000`:
+Crear `frontend/.env`:
+
+```env
+BACKEND_URL="http://localhost:3001"
+```
+
+`nuxt.config.ts` expone esta variable como `runtimeConfig.public.apiBaseUrl`.
+
+## Ejecutar
 
 ```bash
-pnpm dev
+# desarrollo
+npm run dev
+
+# typecheck
+npm run typecheck
+
+# build
+npm run build
+
+# preview
+npm run preview
 ```
 
-## Production
+App en: `http://localhost:3000`
 
-Build the application for production:
+## Arquitectura de consumo API
 
-```bash
-pnpm build
-```
+- Plugin fetch: `app/plugins/api.ts`
+  - Provee `$api` con `baseURL` desde `BACKEND_URL`.
+- Endpoints centralizados: `app/constants/endpoints.ts`
+- Servicios auto-importados desde `app/services/**` (configurado en `nuxt.config.ts`):
+  - `clients.ts`
+  - `debts.ts`
+  - `messages.ts`
 
-Locally preview production build:
+## Vistas principales
 
-```bash
-pnpm preview
-```
+- `/clients`
+  - Landing con tabla y métricas.
+- `/clients/new`
+  - Flujo de iniciar conversación (datos, deudas opcionales, primer mensaje).
+- `/clients/:id`
+  - Detalle del cliente + deudas + chat con envío de mensajes cliente.
 
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+## Flujo funcional
 
-## Renovate integration
+1. Se crea cliente con datos financieros y opcionalmente deudas.
+2. Se envía el primer mensaje del cliente.
+3. Se redirige a la vista detalle.
+4. En chat, cada nuevo mensaje del cliente puede disparar respuesta automática IA (backend).
 
-Install [Renovate GitHub app](https://github.com/apps/renovate/installations/select_target) on your repository and you are good to go.
+## Utilidades
+
+En `app/utils`:
+
+- formateo de RUT,
+- fechas,
+- números con separador de miles.
