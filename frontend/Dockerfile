@@ -1,4 +1,3 @@
-# Development stage
 FROM node:23 AS development
 
 WORKDIR /app
