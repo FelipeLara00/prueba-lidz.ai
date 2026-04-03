@@ -1,32 +1,15 @@
 <script setup lang="ts">
 import type { TableColumn } from '@nuxt/ui'
 import { h, resolveComponent } from 'vue'
-import type {
-  ClientDTO,
-  CreateClientDebtRequestDTO,
-  CreateClientMessageRequestDTO,
-  CreateClientRequestDTO
-} from '~/dtos'
+import type { ClientDTO } from '~/dtos'
 import { useClientsService } from '~/services/clients'
 import { formatNumber, formatRut } from '~/utils'
 
 const service = useClientsService()
 
 const loadingTable = ref(false)
-const saving = ref(false)
-const createModalOpen = ref(false)
 const clients = ref<ClientDTO[]>([])
 const errorMessage = ref('')
-const successMessage = ref('')
-
-const createForm = reactive<CreateClientRequestDTO>({
-  name: '',
-  rut: '',
-  salary: 0,
-  savings: 0,
-  debts: [],
-  messages: []
-})
 
 function getSurnameInitials(fullName: string): string {
   const parts = fullName.trim().split(/\s+/).filter(Boolean)
@@ -58,7 +41,6 @@ const tableColumns: TableColumn<ClientDTO>[] = [
     accessorKey: 'name',
     header: headerWithIcon('i-lucide-user-round', 'Nombre'),
     cell: ({ row }: { row: { original: ClientDTO } }) => {
-      const UIcon = resolveComponent('UIcon')
       const initials = getSurnameInitials(row.original.name)
 
       return h('div', { class: 'flex items-center gap-3' }, [
@@ -69,9 +51,7 @@ const tableColumns: TableColumn<ClientDTO>[] = [
           },
           initials || '--'
         ),
-        h('div', { class: 'flex items-center gap-2' }, [
-          h('span', { class: 'font-medium' }, row.original.name)
-        ])
+        h('span', { class: 'font-medium' }, row.original.name)
       ])
     }
   },
@@ -95,24 +75,8 @@ const tableColumns: TableColumn<ClientDTO>[] = [
 const totalSalary = computed(() => clients.value.reduce((acc, item) => acc + item.salary, 0))
 const totalSavings = computed(() => clients.value.reduce((acc, item) => acc + item.savings, 0))
 
-function setSuccess(message: string) {
-  successMessage.value = message
-  errorMessage.value = ''
-}
-
 function setError(message: string) {
   errorMessage.value = message
-  successMessage.value = ''
-}
-
-function toIsoOrEmpty(value: string): string {
-  const date = new Date(value)
-
-  if (Number.isNaN(date.getTime())) {
-    return ''
-  }
-
-  return date.toISOString()
 }
 
 async function loadClients() {
@@ -123,45 +87,6 @@ async function loadClients() {
     setError('No se pudo cargar la lista de clientes.')
   } finally {
     loadingTable.value = false
-  }
-}
-
-async function handleCreate() {
-  try {
-    saving.value = true
-    const created = await service.create({
-      name: createForm.name.trim(),
-      rut: createForm.rut.trim(),
-      salary: Number(createForm.salary),
-      savings: Number(createForm.savings),
-      debts: (createForm.debts ?? [])
-        .map((item): CreateClientDebtRequestDTO => ({
-          institution: item.institution.trim(),
-          amount: Number(item.amount),
-          dueDate: item.dueDate ? toIsoOrEmpty(item.dueDate) : ''
-        }))
-        .filter((item) => item.institution && item.amount > 0 && item.dueDate),
-      messages: (createForm.messages ?? [])
-        .map((item): CreateClientMessageRequestDTO => ({
-          text: item.text.trim(),
-          role: item.role,
-          sentAt: item.sentAt ? toIsoOrEmpty(item.sentAt) : ''
-        }))
-        .filter((item) => item.text && item.sentAt)
-    })
-    setSuccess(`Cliente ${created.name} creado correctamente.`)
-    createModalOpen.value = false
-    createForm.name = ''
-    createForm.rut = ''
-    createForm.salary = 0
-    createForm.savings = 0
-    createForm.debts = []
-    createForm.messages = []
-    await loadClients()
-  } catch {
-    setError('No se pudo crear el cliente.')
-  } finally {
-    saving.value = false
   }
 }
 
@@ -183,8 +108,8 @@ onMounted(loadClients)
   <UContainer class="py-8 space-y-6">
     <div class="flex items-center justify-between gap-3">
       <h1 class="text-xl font-semibold tracking-tight">Clientes</h1>
-      <UButton icon="i-lucide-user-plus" @click="createModalOpen = true">
-        Nuevo cliente
+      <UButton icon="i-lucide-user-plus" @click="navigateTo('/clients/new')">
+        Iniciar conversación
       </UButton>
     </div>
 
@@ -199,20 +124,6 @@ onMounted(loadClients)
       color="error"
       variant="subtle"
       :title="errorMessage"
-    />
-
-    <UAlert
-      v-if="successMessage"
-      color="success"
-      variant="subtle"
-      :title="successMessage"
-    />
-
-    <ClientsCreateCard
-      v-model:open="createModalOpen"
-      v-model:form="createForm"
-      :saving="saving"
-      @submit="handleCreate"
     />
 
     <ClientsTableCard

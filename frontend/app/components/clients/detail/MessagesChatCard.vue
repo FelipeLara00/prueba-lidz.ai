@@ -69,8 +69,8 @@ watch(
 
 <template>
   <UCard
-    class="h-full bg-white dark:bg-neutral-900 rounded-2xl border-0 ring-0 shadow-none p-2"
-    :ui="{ root: 'h-full flex flex-col', body: 'flex-1 min-h-0 flex' }"
+    class="min-h-[65dvh] lg:h-full bg-white dark:bg-neutral-900 rounded-2xl border-0 ring-0 shadow-none p-2"
+    :ui="{ root: 'h-full flex flex-col', body: 'flex-1 min-h-0 flex p-2 sm:p-3' }"
   >
     <template #header>
       <div class="flex items-center justify-between gap-3">
