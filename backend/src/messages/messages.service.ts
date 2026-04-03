@@ -3,42 +3,42 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { randomUUID } from 'crypto';
 import { CreateMessageDto, UpdateMessageDto } from './dto';
 import { Message } from './entities';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class MessagesService {
-  private readonly messages: Message[] = [];
+  constructor(private readonly prisma: PrismaService) {}
 
-  create(createMessageDto: CreateMessageDto): Message {
+  async create(createMessageDto: CreateMessageDto): Promise<Message> {
     try {
-      const message: Message = {
-        id: randomUUID(),
-        text: createMessageDto.text,
-        role: createMessageDto.role,
-        sentAt: createMessageDto.sentAt,
-        clientId: createMessageDto.clientId,
-        createdAt: new Date(),
-      };
-      this.messages.push(message);
-      return message;
+      return await this.prisma.message.create({
+        data: {
+          ...createMessageDto,
+          sentAt: new Date(createMessageDto.sentAt),
+        },
+      });
     } catch (error) {
       this.handleError(error);
     }
   }
 
-  findAll(): Message[] {
+  async findAll(): Promise<Message[]> {
     try {
-      return this.messages;
+      return await this.prisma.message.findMany({
+        orderBy: { createdAt: 'desc' },
+      });
     } catch (error) {
       this.handleError(error);
     }
   }
 
-  findOne(id: string): Message {
+  async findOne(id: string): Promise<Message> {
     try {
-      const message = this.messages.find((item) => item.id === id);
+      const message = await this.prisma.message.findUnique({
+        where: { id },
+      });
       if (!message) {
         throw new NotFoundException(`Message with id ${id} was not found`);
       }
@@ -48,23 +48,32 @@ export class MessagesService {
     }
   }
 
-  update(id: string, updateMessageDto: UpdateMessageDto): Message {
+  async update(
+    id: string,
+    updateMessageDto: UpdateMessageDto,
+  ): Promise<Message> {
     try {
-      const message = this.findOne(id);
-      Object.assign(message, updateMessageDto);
-      return message;
+      await this.findOne(id);
+      return await this.prisma.message.update({
+        where: { id },
+        data: {
+          ...updateMessageDto,
+          ...(updateMessageDto.sentAt
+            ? { sentAt: new Date(updateMessageDto.sentAt) }
+            : {}),
+        },
+      });
     } catch (error) {
       this.handleError(error);
     }
   }
 
-  remove(id: string): void {
+  async remove(id: string): Promise<void> {
     try {
-      const messageIndex = this.messages.findIndex((item) => item.id === id);
-      if (messageIndex === -1) {
-        throw new NotFoundException(`Message with id ${id} was not found`);
-      }
-      this.messages.splice(messageIndex, 1);
+      await this.findOne(id);
+      await this.prisma.message.delete({
+        where: { id },
+      });
     } catch (error) {
       this.handleError(error);
     }
@@ -74,6 +83,8 @@ export class MessagesService {
     if (error instanceof NotFoundException) {
       throw error;
     }
-    throw new InternalServerErrorException('Unexpected error in messages service');
+    throw new InternalServerErrorException(
+      'Unexpected error in messages service',
+    );
   }
 }

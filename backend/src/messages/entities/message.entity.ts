@@ -2,7 +2,7 @@ export class Message {
   id: string;
   text: string;
   role: 'client' | 'agent';
-  sentAt: string;
+  sentAt: Date;
   clientId: string;
   createdAt: Date;
 }
