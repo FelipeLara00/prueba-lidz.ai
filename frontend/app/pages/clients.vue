@@ -68,6 +68,10 @@ async function handleCreate() {
   }
 }
 
+function onRowSelect(_event: Event, row: { original: ClientDTO }) {
+  navigateTo(`/clients/${row.original.id}`)
+}
+
 onMounted(loadClients)
 </script>
 
@@ -109,6 +113,7 @@ onMounted(loadClients)
       :columns="tableColumns"
       :loading="loadingTable"
       @reload="loadClients"
+      @row-select="onRowSelect"
     />
   </UContainer>
 </template>

@@ -13,8 +13,38 @@ export class ClientsService {
 
   async create(createClientDto: CreateClientDto): Promise<Client> {
     try {
+      const { debts = [], messages = [], ...clientData } = createClientDto;
+
       return await this.prisma.client.create({
-        data: createClientDto,
+        data: {
+          ...clientData,
+          ...(debts.length
+            ? {
+                debts: {
+                  create: debts.map((debt) => ({
+                    institution: debt.institution,
+                    amount: debt.amount,
+                    dueDate: new Date(debt.dueDate),
+                  })),
+                },
+              }
+            : {}),
+          ...(messages.length
+            ? {
+                messages: {
+                  create: messages.map((message) => ({
+                    text: message.text,
+                    role: message.role,
+                    sentAt: new Date(message.sentAt),
+                  })),
+                },
+              }
+            : {}),
+        },
+        include: {
+          debts: true,
+          messages: true,
+        },
       });
     } catch (error) {
       this.handleError(error);
@@ -35,6 +65,14 @@ export class ClientsService {
     try {
       const client = await this.prisma.client.findUnique({
         where: { id },
+        include: {
+          debts: {
+            orderBy: { createdAt: 'desc' },
+          },
+          messages: {
+            orderBy: { createdAt: 'desc' },
+          },
+        },
       });
       if (!client) {
         throw new NotFoundException(`Client with id ${id} was not found`);
@@ -72,6 +110,8 @@ export class ClientsService {
     if (error instanceof NotFoundException) {
       throw error;
     }
-    throw new InternalServerErrorException('Unexpected error in clients service');
+    throw new InternalServerErrorException(
+      'Unexpected error in clients service',
+    );
   }
 }
