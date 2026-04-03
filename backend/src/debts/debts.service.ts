@@ -3,42 +3,42 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { randomUUID } from 'crypto';
 import { CreateDebtDto, UpdateDebtDto } from './dto';
 import { Debt } from './entities';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class DebtsService {
-  private readonly debts: Debt[] = [];
+  constructor(private readonly prisma: PrismaService) {}
 
-  create(createDebtDto: CreateDebtDto): Debt {
+  async create(createDebtDto: CreateDebtDto): Promise<Debt> {
     try {
-      const debt: Debt = {
-        id: randomUUID(),
-        institution: createDebtDto.institution,
-        amount: createDebtDto.amount,
-        dueDate: createDebtDto.dueDate,
-        clientId: createDebtDto.clientId,
-        createdAt: new Date(),
-      };
-      this.debts.push(debt);
-      return debt;
+      return await this.prisma.debt.create({
+        data: {
+          ...createDebtDto,
+          dueDate: new Date(createDebtDto.dueDate),
+        },
+      });
     } catch (error) {
       this.handleError(error);
     }
   }
 
-  findAll(): Debt[] {
+  async findAll(): Promise<Debt[]> {
     try {
-      return this.debts;
+      return await this.prisma.debt.findMany({
+        orderBy: { createdAt: 'desc' },
+      });
     } catch (error) {
       this.handleError(error);
     }
   }
 
-  findOne(id: string): Debt {
+  async findOne(id: string): Promise<Debt> {
     try {
-      const debt = this.debts.find((item) => item.id === id);
+      const debt = await this.prisma.debt.findUnique({
+        where: { id },
+      });
       if (!debt) {
         throw new NotFoundException(`Debt with id ${id} was not found`);
       }
@@ -48,23 +48,29 @@ export class DebtsService {
     }
   }
 
-  update(id: string, updateDebtDto: UpdateDebtDto): Debt {
+  async update(id: string, updateDebtDto: UpdateDebtDto): Promise<Debt> {
     try {
-      const debt = this.findOne(id);
-      Object.assign(debt, updateDebtDto);
-      return debt;
+      await this.findOne(id);
+      return await this.prisma.debt.update({
+        where: { id },
+        data: {
+          ...updateDebtDto,
+          ...(updateDebtDto.dueDate
+            ? { dueDate: new Date(updateDebtDto.dueDate) }
+            : {}),
+        },
+      });
     } catch (error) {
       this.handleError(error);
     }
   }
 
-  remove(id: string): void {
+  async remove(id: string): Promise<void> {
     try {
-      const debtIndex = this.debts.findIndex((item) => item.id === id);
-      if (debtIndex === -1) {
-        throw new NotFoundException(`Debt with id ${id} was not found`);
-      }
-      this.debts.splice(debtIndex, 1);
+      await this.findOne(id);
+      await this.prisma.debt.delete({
+        where: { id },
+      });
     } catch (error) {
       this.handleError(error);
     }
