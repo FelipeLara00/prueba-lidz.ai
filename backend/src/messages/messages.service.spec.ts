@@ -175,7 +175,9 @@ describe('MessagesService', () => {
       createdAt: new Date(),
     };
     prisma.message.create.mockResolvedValueOnce(createdClient);
-    const createMock = jest.fn().mockResolvedValue({ output_text: 'respuesta ia' });
+    const createMock = jest
+      .fn()
+      .mockResolvedValue({ output_text: 'respuesta ia' });
     (OpenAI as unknown as jest.Mock).mockImplementation(() => ({
       responses: { create: createMock },
     }));
@@ -211,7 +213,9 @@ describe('MessagesService', () => {
       salary: 1000000,
       debts: [{ amount: 3000000 }],
     });
-    const createMock = jest.fn().mockResolvedValue({ output_text: 'respuesta ia' });
+    const createMock = jest
+      .fn()
+      .mockResolvedValue({ output_text: 'respuesta ia' });
     (OpenAI as unknown as jest.Mock).mockImplementation(() => ({
       responses: { create: createMock },
     }));
@@ -305,7 +309,9 @@ describe('MessagesService', () => {
       if (key === 'OPENAI_MODEL') return 'gpt-4.1-mini';
       return undefined;
     });
-    const createMock = jest.fn().mockResolvedValue({ output_text: 'Respuesta IA' });
+    const createMock = jest
+      .fn()
+      .mockResolvedValue({ output_text: 'Respuesta IA' });
     (OpenAI as unknown as jest.Mock).mockImplementation(() => ({
       responses: { create: createMock },
     }));

@@ -39,7 +39,9 @@ export class ClientsController {
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Obtener cliente por ID (incluye mensajes y deudas)' })
+  @ApiOperation({
+    summary: 'Obtener cliente por ID (incluye mensajes y deudas)',
+  })
   @ApiParam({ name: 'id', type: String, format: 'uuid' })
   @ApiOkResponse({ type: Client })
   findOne(@Param('id') id: string) {
@@ -51,10 +53,7 @@ export class ClientsController {
   @ApiParam({ name: 'id', type: String, format: 'uuid' })
   @ApiBody({ type: UpdateClientDto })
   @ApiOkResponse({ type: Client })
-  update(
-    @Param('id') id: string,
-    @Body() updateClientDto: UpdateClientDto,
-  ) {
+  update(@Param('id') id: string, @Body() updateClientDto: UpdateClientDto) {
     return this.clientsService.update(id, updateClientDto);
   }
 
