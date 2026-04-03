@@ -16,6 +16,7 @@ describe('MessagesService', () => {
   let prisma: {
     message: {
       create: jest.Mock;
+      count: jest.Mock;
       findMany: jest.Mock;
       findUnique: jest.Mock;
       update: jest.Mock;
@@ -30,6 +31,7 @@ describe('MessagesService', () => {
     prisma = {
       message: {
         create: jest.fn(),
+        count: jest.fn().mockResolvedValue(0),
         findMany: jest.fn(),
         findUnique: jest.fn(),
         update: jest.fn(),
@@ -217,6 +219,56 @@ describe('MessagesService', () => {
     await expect(service.create(dto)).resolves.toEqual(createdClient);
     expect(prisma.message.create).toHaveBeenCalledTimes(1);
     expect(createMock).not.toHaveBeenCalled();
+  });
+
+  it('generates agent response when client already has previous messages', async () => {
+    configService.get.mockImplementation((key: string) => {
+      if (key === 'OPENAI_API_KEY') return 'test-key';
+      if (key === 'OPENAI_MODEL') return 'gpt-4.1-mini';
+      return undefined;
+    });
+    const dto = {
+      text: 'Hola',
+      role: 'client' as const,
+      sentAt: '2026-04-10T00:00:00.000Z',
+      clientId: '11111111-1111-1111-1111-111111111111',
+    };
+    const createdClient = {
+      id: 'm1',
+      text: dto.text,
+      role: dto.role,
+      sentAt: new Date(dto.sentAt),
+      clientId: dto.clientId,
+      createdAt: new Date(),
+    };
+    const createdAgent = {
+      id: 'm2',
+      text: 'respuesta ia',
+      role: 'agent' as const,
+      sentAt: new Date(),
+      clientId: dto.clientId,
+      createdAt: new Date(),
+    };
+    prisma.message.create
+      .mockResolvedValueOnce(createdClient)
+      .mockResolvedValueOnce(createdAgent);
+    prisma.message.count.mockResolvedValue(1);
+    prisma.message.findMany.mockResolvedValue([]);
+    prisma.client.findUnique.mockResolvedValue({
+      id: dto.clientId,
+      salary: 1000000,
+      debts: [],
+    });
+    const createMock = jest
+      .fn()
+      .mockResolvedValue({ output_text: 'respuesta ia' });
+    (OpenAI as unknown as jest.Mock).mockImplementation(() => ({
+      responses: { create: createMock },
+    }));
+
+    await expect(service.create(dto)).resolves.toEqual(createdClient);
+    expect(prisma.message.create).toHaveBeenCalledTimes(2);
+    expect(createMock).toHaveBeenCalled();
   });
 
   it('throws NotFoundException when message does not exist', async () => {

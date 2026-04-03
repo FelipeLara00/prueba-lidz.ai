@@ -19,6 +19,7 @@ export class MessagesService {
     'hipotecario',
     'hipoteca',
     'pie',
+    'propiedad',
     'dividendo',
     'tasa',
     'cae',
@@ -78,6 +79,10 @@ export class MessagesService {
     'garantia hipotecaria',
     'aval',
     'codeudor',
+    'comprar',
+    'vender',
+    'arrendar',
+    'arriendar',
   ];
 
   constructor(
@@ -103,6 +108,7 @@ export class MessagesService {
       const shouldReply = await this.applyRules(
         createMessageDto.text,
         createMessageDto.clientId,
+        createdClientMessage.id,
       );
 
       if (shouldReply) {
@@ -228,7 +234,19 @@ export class MessagesService {
   private async applyRules(
     message: string,
     clientId: string,
+    latestMessageId: string,
   ): Promise<boolean> {
+    const previousMessagesCount = await this.prisma.message.count({
+      where: {
+        clientId,
+        id: { not: latestMessageId },
+      },
+    });
+
+    if (previousMessagesCount > 0) {
+      return true;
+    }
+
     const normalized = message
       .toLowerCase()
       .normalize('NFD')
@@ -295,6 +313,7 @@ export class MessagesService {
     ]);
 
     const salary = client?.salary ?? 0;
+    const savings = client?.savings ?? 0;
     const totalDebt =
       client?.debts.reduce((sum, debt) => sum + debt.amount, 0) ?? 0;
 
@@ -312,6 +331,7 @@ export class MessagesService {
       'No inventes datos.',
       'Contexto financiero del cliente:',
       `- Renta mensual: ${salary}`,
+      `- Ahorros: ${savings}`,
       `- Deuda total: ${totalDebt}`,
       'Mensajes anteriores de la conversación (para contexto):',
       historyText,
