@@ -1,44 +1,30 @@
-# Development stage
 FROM node:23 AS development
 
-WORKDIR /usr/src/app
+WORKDIR /app/backend
 
-# Copy package files
-COPY package*.json ./
-
-# Install dependencies
+# Build context expected at repo root
+COPY backend/package*.json ./
 RUN npm install
 
-# Copy source code
-COPY . .
-
-# Build the app
+COPY backend/ ./
 RUN npm run build
 
-# Expose port
 EXPOSE 3001
-
-# Start the app in development mode
 CMD ["npm", "run", "start"]
 
-# Production stage
-FROM node:23 AS base
-WORKDIR /usr/src/app
+FROM node:23 AS production
+WORKDIR /app/backend
 
-# Copy package files
-COPY package*.json ./
+# Build context expected at repo root
+COPY backend/package*.json ./
+RUN npm install --omit=dev
 
-# Install dependencies
-RUN npm install
+COPY --from=development /app/backend/dist ./dist
+COPY --from=development /app/backend/prisma ./prisma
+COPY --from=development /app/backend/dev.db ./dev.db
 
-# Copy built app from development stage
-COPY --from=development /usr/src/app/dist ./dist
-COPY --from=development /usr/src/app/src ./src
-COPY --from=development /usr/src/app/tsconfig.json ./
-COPY --from=development /usr/src/app/test ./test
+ENV NODE_ENV=production
+ENV PORT=3001
 
-# Expose port
 EXPOSE 3001
-
-# Start the app
 CMD ["npm", "run", "start:prod"]
