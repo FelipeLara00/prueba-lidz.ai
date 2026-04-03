@@ -130,7 +130,7 @@ export class MessagesService {
               },
             });
           }
-        } catch (error) {
+        } catch {
           // IA response is best-effort: client message should still be created.
         }
       }
@@ -190,6 +190,71 @@ export class MessagesService {
       await this.findOne(id);
       await this.prisma.message.delete({
         where: { id },
+      });
+    } catch (error) {
+      this.handleError(error);
+    }
+  }
+
+  async createFollowUpForClient(
+    clientId: string,
+  ): Promise<Message | Record<string, never>> {
+    try {
+      const client = await this.prisma.client.findUnique({
+        where: { id: clientId },
+        include: {
+          messages: {
+            select: {
+              id: true,
+              text: true,
+              role: true,
+              sentAt: true,
+            },
+            orderBy: { sentAt: 'desc' },
+          },
+        },
+      });
+
+      if (!client) {
+        throw new NotFoundException(`Client with id ${clientId} was not found`);
+      }
+
+      const latestClientMessage = client.messages.find(
+        (message) => message.role === 'client',
+      );
+
+      if (!latestClientMessage) {
+        return {};
+      }
+
+      const shouldReply = await this.applyRules(
+        latestClientMessage.text,
+        clientId,
+        latestClientMessage.id,
+      );
+
+      if (!shouldReply) {
+        return {};
+      }
+
+      const prompt = await this.buildPrompt(
+        clientId,
+        latestClientMessage.id,
+        latestClientMessage.text,
+      );
+      const aiResponse = await this.anwserWithAI(prompt);
+
+      if (!aiResponse.trim()) {
+        return {};
+      }
+
+      return await this.prisma.message.create({
+        data: {
+          text: aiResponse.trim(),
+          role: 'agent',
+          sentAt: new Date(),
+          clientId,
+        },
       });
     } catch (error) {
       this.handleError(error);

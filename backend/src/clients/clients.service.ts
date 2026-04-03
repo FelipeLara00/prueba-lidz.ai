@@ -6,10 +6,15 @@ import {
 import { CreateClientDto, UpdateClientDto } from './dto';
 import { Client } from './entities';
 import { PrismaService } from '../prisma/prisma.service';
+import { Message } from '../messages/entities';
+import { MessagesService } from '../messages/messages.service';
 
 @Injectable()
 export class ClientsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly messagesService: MessagesService,
+  ) {}
 
   async create(createClientDto: CreateClientDto): Promise<Client> {
     try {
@@ -101,6 +106,16 @@ export class ClientsService {
       await this.prisma.client.delete({
         where: { id },
       });
+    } catch (error) {
+      this.handleError(error);
+    }
+  }
+
+  async clientToDoFollowUp(
+    id: string,
+  ): Promise<Message | Record<string, never>> {
+    try {
+      return await this.messagesService.createFollowUpForClient(id);
     } catch (error) {
       this.handleError(error);
     }
