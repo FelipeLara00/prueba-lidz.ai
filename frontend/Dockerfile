@@ -1,20 +1,41 @@
-FROM node:22-alpine AS deps
-WORKDIR /app
-COPY package*.json ./
-RUN npm ci
+FROM node:23 AS development
 
-FROM node:22-alpine AS build
 WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
+
+# Copy package files
+COPY package*.json ./
+
+# Install dependencies
+RUN npm install
+
+# Copy source code
 COPY . .
+
+# Expose port
+EXPOSE 3000
+
+# Start the app in development mode
+CMD ["npm", "run", "dev"]
+
+# Production stage
+FROM node:23 AS production
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install dependencies
+RUN npm install
+
+# Copy source code
+COPY . .
+
+# Build the app
 RUN npm run build
 
-FROM node:22-alpine AS runner
-WORKDIR /app
-ENV NODE_ENV=production
-ENV NITRO_HOST=0.0.0.0
-ENV NITRO_PORT=3000
-ENV PORT=3000
-COPY --from=build /app/.output ./.output
+# Expose port
 EXPOSE 3000
+
+# Start the app
 CMD ["node", ".output/server/index.mjs"]
