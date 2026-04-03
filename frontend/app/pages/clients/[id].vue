@@ -30,24 +30,21 @@ async function loadClientDetails() {
   }
 }
 
-async function handleSendMessage(payload: { text: string; role: 'client' | 'agent' }) {
+async function handleSendMessage(payload: { text: string }) {
   if (!client.value) {
     return
   }
 
   try {
     sendingMessage.value = true
-    const createdMessage = await messagesService.create({
+    await messagesService.create({
       text: payload.text,
-      role: payload.role,
+      role: 'client',
       sentAt: new Date().toISOString(),
       clientId: client.value.id
     })
 
-    client.value = {
-      ...client.value,
-      messages: [...client.value.messages, createdMessage]
-    }
+    client.value = await clientsService.getById(client.value.id)
   } catch {
     errorMessage.value = 'No se pudo enviar el mensaje.'
   } finally {
