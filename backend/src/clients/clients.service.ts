@@ -3,44 +3,39 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { randomUUID } from 'crypto';
 import { CreateClientDto, UpdateClientDto } from './dto';
 import { Client } from './entities';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class ClientsService {
-  private readonly clients: Client[] = [];
+  constructor(private readonly prisma: PrismaService) {}
 
-  create(createClientDto: CreateClientDto): Client {
+  async create(createClientDto: CreateClientDto): Promise<Client> {
     try {
-      const now = new Date();
-      const client: Client = {
-        id: randomUUID(),
-        name: createClientDto.name,
-        rut: createClientDto.rut,
-        salary: createClientDto.salary,
-        savings: createClientDto.savings,
-        createdAt: now,
-        updatedAt: now,
-      };
-      this.clients.push(client);
-      return client;
+      return await this.prisma.client.create({
+        data: createClientDto,
+      });
     } catch (error) {
       this.handleError(error);
     }
   }
 
-  findAll(): Client[] {
+  async findAll(): Promise<Client[]> {
     try {
-      return this.clients;
+      return await this.prisma.client.findMany({
+        orderBy: { createdAt: 'desc' },
+      });
     } catch (error) {
       this.handleError(error);
     }
   }
 
-  findOne(id: string): Client {
+  async findOne(id: string): Promise<Client> {
     try {
-      const client = this.clients.find((item) => item.id === id);
+      const client = await this.prisma.client.findUnique({
+        where: { id },
+      });
       if (!client) {
         throw new NotFoundException(`Client with id ${id} was not found`);
       }
@@ -50,24 +45,24 @@ export class ClientsService {
     }
   }
 
-  update(id: string, updateClientDto: UpdateClientDto): Client {
+  async update(id: string, updateClientDto: UpdateClientDto): Promise<Client> {
     try {
-      const client = this.findOne(id);
-      Object.assign(client, updateClientDto);
-      client.updatedAt = new Date();
-      return client;
+      await this.findOne(id);
+      return await this.prisma.client.update({
+        where: { id },
+        data: updateClientDto,
+      });
     } catch (error) {
       this.handleError(error);
     }
   }
 
-  remove(id: string): void {
+  async remove(id: string): Promise<void> {
     try {
-      const clientIndex = this.clients.findIndex((item) => item.id === id);
-      if (clientIndex === -1) {
-        throw new NotFoundException(`Client with id ${id} was not found`);
-      }
-      this.clients.splice(clientIndex, 1);
+      await this.findOne(id);
+      await this.prisma.client.delete({
+        where: { id },
+      });
     } catch (error) {
       this.handleError(error);
     }
