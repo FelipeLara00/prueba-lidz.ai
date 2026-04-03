@@ -8,16 +8,11 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  submitMessage: [payload: { text: string; role: 'client' | 'agent' }]
+  submitMessage: [payload: { text: string }]
 }>()
 
 const draftText = ref('')
-const draftRole = ref<'client' | 'agent'>('client')
 const messagesViewportRef = ref<HTMLElement | null>(null)
-const roleItems = [
-  { label: 'Cliente', value: 'client' },
-  { label: 'Agente', value: 'agent' }
-]
 
 function onSubmitMessage() {
   const text = draftText.value.trim()
@@ -26,7 +21,7 @@ function onSubmitMessage() {
     return
   }
 
-  emit('submitMessage', { text, role: draftRole.value })
+  emit('submitMessage', { text })
   draftText.value = ''
 }
 
@@ -119,24 +114,13 @@ watch(
           @submit="onSubmitMessage"
         >
           <template #footer>
-            <div class="w-full flex items-center gap-2">
-              <div class="w-40">
-                <USelect
-                  v-model="draftRole"
-                  :items="roleItems"
-                  value-key="value"
-                  label-key="label"
-                />
-              </div>
-
-              <div class="ml-auto">
-                <UChatPromptSubmit
-                  :status="sending ? 'streaming' : 'ready'"
-                  :disabled="!draftText.trim()"
-                  color="primary"
-                  variant="solid"
-                />
-              </div>
+            <div class="w-full flex items-center justify-end">
+              <UChatPromptSubmit
+                :status="sending ? 'streaming' : 'ready'"
+                :disabled="!draftText.trim()"
+                color="primary"
+                variant="solid"
+              />
             </div>
           </template>
         </UChatPrompt>
