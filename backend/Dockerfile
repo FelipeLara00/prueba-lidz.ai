@@ -1,23 +1,44 @@
-FROM node:22-alpine AS deps
-WORKDIR /app
+# Development stage
+FROM node:23 AS development
+
+WORKDIR /usr/src/app
+
+# Copy package files
 COPY package*.json ./
-RUN npm ci
 
-FROM node:22-alpine AS build
-WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
+# Install dependencies
+RUN npm install
+
+# Copy source code
 COPY . .
-RUN npm run build
-RUN npm prune --omit=dev
 
-FROM node:22-alpine AS runner
-WORKDIR /app
-ENV NODE_ENV=production
-ENV PORT=3001
-COPY --from=build /app/node_modules ./node_modules
-COPY --from=build /app/dist ./dist
-COPY --from=build /app/prisma ./prisma
-COPY --from=build /app/dev.db ./dev.db
-COPY --from=build /app/package*.json ./
+# Build the app
+RUN npm run build
+
+# Expose port
 EXPOSE 3001
-CMD ["node", "dist/main"]
+
+# Start the app in development mode
+CMD ["npm", "run", "start"]
+
+# Production stage
+FROM node:23 AS base
+WORKDIR /usr/src/app
+
+# Copy package files
+COPY package*.json ./
+
+# Install dependencies
+RUN npm install
+
+# Copy built app from development stage
+COPY --from=development /usr/src/app/dist ./dist
+COPY --from=development /usr/src/app/src ./src
+COPY --from=development /usr/src/app/tsconfig.json ./
+COPY --from=development /usr/src/app/test ./test
+
+# Expose port
+EXPOSE 3001
+
+# Start the app
+CMD ["npm", "run", "start:prod"]
