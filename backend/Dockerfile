@@ -1,6 +1,7 @@
 FROM node:22-bookworm-slim AS development
 
 WORKDIR /app/backend
+ENV DATABASE_URL=file:./dev.db
 
 # Build context expected at repo root
 COPY backend/package*.json ./
