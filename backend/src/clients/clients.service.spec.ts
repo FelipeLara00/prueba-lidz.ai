@@ -6,6 +6,9 @@ import { ClientsService } from './clients.service';
 
 describe('ClientsService', () => {
   let service: ClientsService;
+  let messagesService: {
+    createFollowUpForClient: jest.Mock;
+  };
   let prisma: {
     client: {
       create: jest.Mock;
@@ -13,6 +16,9 @@ describe('ClientsService', () => {
       findUnique: jest.Mock;
       update: jest.Mock;
       delete: jest.Mock;
+    };
+    message: {
+      create: jest.Mock;
     };
   };
 
@@ -25,8 +31,14 @@ describe('ClientsService', () => {
         update: jest.fn(),
         delete: jest.fn(),
       },
+      message: {
+        create: jest.fn(),
+      },
     };
-    service = new ClientsService(prisma as never);
+    messagesService = {
+      createFollowUpForClient: jest.fn(),
+    };
+    service = new ClientsService(prisma as never, messagesService as never);
   });
 
   it('creates a client in prisma', async () => {
@@ -71,5 +83,40 @@ describe('ClientsService', () => {
 
     await expect(service.remove('c1')).resolves.toBeUndefined();
     expect(prisma.client.delete).toHaveBeenCalledWith({ where: { id: 'c1' } });
+  });
+
+  it('delegates follow-up and returns empty object', async () => {
+    messagesService.createFollowUpForClient.mockResolvedValue({});
+    await expect(service.clientToDoFollowUp('c1')).resolves.toEqual({});
+    expect(messagesService.createFollowUpForClient).toHaveBeenCalledWith('c1');
+  });
+
+  it('delegates follow-up and returns message', async () => {
+    messagesService.createFollowUpForClient.mockResolvedValue({
+      id: 'm2',
+      text: 'Hola Ana, te puedo ayudar a retomar tu evaluacion.',
+      role: 'agent',
+      sentAt: new Date(),
+      clientId: 'c1',
+      createdAt: new Date(),
+    });
+
+    const result = await service.clientToDoFollowUp('c1');
+
+    expect(result).toMatchObject({
+      role: 'agent',
+      clientId: 'c1',
+    });
+    expect(messagesService.createFollowUpForClient).toHaveBeenCalledWith('c1');
+  });
+
+  it('throws NotFoundException when follow-up client does not exist', async () => {
+    messagesService.createFollowUpForClient.mockRejectedValue(
+      new NotFoundException('missing'),
+    );
+
+    await expect(service.clientToDoFollowUp('missing')).rejects.toBeInstanceOf(
+      NotFoundException,
+    );
   });
 });

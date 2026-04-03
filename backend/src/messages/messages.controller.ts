@@ -51,10 +51,7 @@ export class MessagesController {
   @ApiParam({ name: 'id', type: String, format: 'uuid' })
   @ApiBody({ type: UpdateMessageDto })
   @ApiOkResponse({ type: Message })
-  update(
-    @Param('id') id: string,
-    @Body() updateMessageDto: UpdateMessageDto,
-  ) {
+  update(@Param('id') id: string, @Body() updateMessageDto: UpdateMessageDto) {
     return this.messagesService.update(id, updateMessageDto);
   }
 
