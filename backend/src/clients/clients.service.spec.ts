@@ -40,7 +40,13 @@ describe('ClientsService', () => {
     prisma.client.create.mockResolvedValue(created);
 
     await expect(service.create(dto)).resolves.toEqual(created);
-    expect(prisma.client.create).toHaveBeenCalledWith({ data: dto });
+    expect(prisma.client.create).toHaveBeenCalledWith({
+      data: dto,
+      include: {
+        debts: true,
+        messages: true,
+      },
+    });
   });
 
   it('throws NotFoundException when client does not exist', async () => {
