@@ -1,10 +1,10 @@
-FROM node:23 AS development
+FROM node:22-alpine AS development
 
 WORKDIR /app/frontend
 
 # Build context expected at repo root
 COPY frontend/package*.json ./
-RUN npm install
+RUN npm ci --legacy-peer-deps
 
 COPY frontend/ ./
 RUN npm run build
@@ -12,7 +12,7 @@ RUN npm run build
 EXPOSE 3000
 CMD ["npm", "run", "dev"]
 
-FROM node:23 AS production
+FROM node:22-alpine AS production
 
 WORKDIR /app/frontend
 
