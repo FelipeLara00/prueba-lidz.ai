@@ -1,44 +1,32 @@
-# Development stage
-FROM node:23 AS development
+FROM node:22-bookworm-slim AS development
 
-WORKDIR /usr/src/app
+WORKDIR /app/backend
+ENV DATABASE_URL=file:./dev.db
 
-# Copy package files
-COPY package*.json ./
+# Build context expected at repo root
+COPY backend/package*.json ./
+RUN npm ci
 
-# Install dependencies
-RUN npm install
-
-# Copy source code
-COPY . .
-
-# Build the app
+COPY backend/ ./
+RUN npx prisma generate
 RUN npm run build
+RUN npm run db:seed
+RUN npm prune --omit=dev
 
-# Expose port
 EXPOSE 3001
-
-# Start the app in development mode
 CMD ["npm", "run", "start"]
 
-# Production stage
-FROM node:23 AS base
-WORKDIR /usr/src/app
+FROM node:22-bookworm-slim AS production
+WORKDIR /app/backend
 
-# Copy package files
-COPY package*.json ./
+COPY --from=development /app/backend/node_modules ./node_modules
+COPY --from=development /app/backend/dist ./dist
+COPY --from=development /app/backend/prisma ./prisma
+COPY --from=development /app/backend/dev.db ./dev.db
+COPY --from=development /app/backend/package*.json ./
 
-# Install dependencies
-RUN npm install
+ENV NODE_ENV=production
+ENV PORT=3001
 
-# Copy built app from development stage
-COPY --from=development /usr/src/app/dist ./dist
-COPY --from=development /usr/src/app/src ./src
-COPY --from=development /usr/src/app/tsconfig.json ./
-COPY --from=development /usr/src/app/test ./test
-
-# Expose port
 EXPOSE 3001
-
-# Start the app
-CMD ["npm", "run", "start:prod"]
+CMD ["node", "dist/src/main.js"]
